@@ -25,10 +25,15 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     DDCodeSplitInputView *inputView = [[DDCodeSplitInputView alloc] initWithFrame:CGRectMake(10, 100, self.view.frame.size.width-20, 50)];
+    inputView.showCursor = YES;
     inputView.delegate = self;
     [self.view addSubview:inputView];
 }
 
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    [[UIApplication sharedApplication] sendAction:@selector(resignFirstResponder) to:nil from:nil forEvent:nil];
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

@@ -69,6 +69,26 @@
  */
 @property (nonatomic, strong) UIColor *bottomLineColor; //default is [UIColor blackColor];
 
+/**
+ 是否显示光标
+ */
+@property (nonatomic, assign) BOOL showCursor; //default is NO;
+
+/**
+ 光标高度
+ */
+@property (nonatomic, assign) CGFloat cursorHieght; //default is 20.
+
+/**
+ 光标宽度
+ */
+@property (nonatomic, assign) CGFloat cursorWidth; //default is 2.
+
+/**
+ 光标颜色
+ */
+@property (nonatomic, strong) UIColor *cursorColor; //default is [UIColor blackColor];
+
 
 - (void)becomeResponder;
 

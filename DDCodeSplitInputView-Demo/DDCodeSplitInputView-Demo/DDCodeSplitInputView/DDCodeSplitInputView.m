@@ -10,6 +10,7 @@
 
 @interface DDCodeSplitInputView ()<UITextFieldDelegate>
 @property (nonatomic, strong) UITextField *textField;
+@property (nonatomic, strong) UIImageView *cursorIV;//光标
 
 @property (nonatomic, strong) NSString *inputStr;
 
@@ -40,19 +41,44 @@
     self.textField.keyboardType = keyboardType;
 }
 
+- (void)setCursorHieght:(CGFloat)cursorHieght
+{
+    _cursorHieght = cursorHieght;
+    CGRect rect = self.cursorIV.frame;
+    rect.size.height = cursorHieght;
+    self.cursorIV.frame = rect;
+}
+
+- (void)setCursorWidth:(CGFloat)cursorWidth
+{
+    _cursorWidth = cursorWidth;
+    self.cursorIV.layer.cornerRadius = cursorWidth/2.0;
+    CGRect rect = self.cursorIV.frame;
+    rect.size.width = cursorWidth;
+    self.cursorIV.frame = rect;
+}
+
+- (void)setCursorColor:(UIColor *)cursorColor
+{
+    _cursorColor = cursorColor;
+    self.cursorIV.backgroundColor = cursorColor;
+}
+
 #pragma mark - useMethod
 - (void)drawRect:(CGRect)rect {
     // Drawing code
     //画线
     [self drawBottomLineWithRect:rect];
-    //画字
+    //画文案
     if (self.secureTextEntry) {
         [self drawSecureTextWithRect:rect];
     } else {
         [self drawTextWithRect:rect];
     }
+    //光标
+    [self drawCursorWithRect:rect];
 }
-//文案
+//明文
 - (void)drawTextWithRect:(CGRect)rect
 {
     CGFloat width = floor((rect.size.width-self.bottomLineMargin*(self.length-1))/self.length);
@@ -89,6 +115,34 @@
         CGContextFillPath(context);
     }
 }
+//光标
+- (void)drawCursorWithRect:(CGRect)rect
+{
+    if (self.showCursor) {
+        if (self.inputStr.length < self.length) {
+            CGFloat width = floor((rect.size.width-self.bottomLineMargin*(self.length-1))/self.length);
+             //获取中心的x坐标
+            NSInteger index = self.inputStr.length;
+            CGFloat centerX = index*(width+self.bottomLineMargin)+width/2.0;
+            
+            //获取中心的y坐标
+            NSMutableDictionary *attributes = @{NSFontAttributeName:self.font, NSForegroundColorAttributeName:self.textColor}.mutableCopy;
+            CGSize size = [self.inputStr sizeWithAttributes:attributes];
+            CGFloat centerY = rect.size.height-self.bottomLineHeight-self.bottomSpace-size.height/2.0;
+            
+            self.cursorIV.center = CGPointMake(centerX, centerY);
+        }
+    }
+}
+//光标闪烁动画
+- (void)cursorAnimation
+{
+    CAKeyframeAnimation *ani = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
+    ani.values = @[@1, @0, @0, @1];
+    ani.duration = 1;
+    ani.repeatCount = 999999;
+    [self.cursorIV.layer addAnimation:ani forKey:@"ani"];
+}
 
 #pragma mark - UIEvent
 - (void)tapAction
@@ -112,6 +166,22 @@
     [self.textField resignFirstResponder];
     return YES;
 }
+- (void)textFieldDidBeginEditing:(UITextField *)textField
+{
+    if (self.showCursor) {
+        if (self.inputStr.length < self.length) {
+            self.cursorIV.hidden = NO;
+        } else {
+            self.cursorIV.hidden = YES;
+        }
+    }
+}
+- (void)textFieldDidEndEditing:(UITextField *)textField
+{
+    if (self.showCursor) {
+        self.cursorIV.hidden = YES;
+    }
+}
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
     NSString *temp = [textField.text stringByReplacingCharactersInRange:range withString:string];
@@ -119,6 +189,14 @@
         return NO;
     }
     self.inputStr = temp;
+    
+    if (self.showCursor) {
+        if (self.inputStr.length < self.length) {
+            self.cursorIV.hidden = NO;
+        } else {
+            self.cursorIV.hidden = YES;
+        }
+    }
     return YES;
 }
 
@@ -147,6 +225,9 @@
 {
     self.backgroundColor = [UIColor whiteColor];
     [self addSubview:self.textField];
+    [self addSubview:self.cursorIV];
+    
+    [self cursorAnimation];
     
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapAction)];
     [self addGestureRecognizer:tap];
@@ -163,6 +244,9 @@
     self.bottomLineMargin = 10;
     self.bottomLineHeight = 2;
     self.bottomLineColor = [UIColor blackColor];
+    self.cursorHieght = 20;
+    self.cursorWidth = 2;
+    self.cursorColor = [UIColor blackColor];
 }
 
 #pragma mark - lazyLoad
@@ -176,6 +260,17 @@
         [_textField addTarget:self action:@selector(textChanged) forControlEvents:UIControlEventEditingChanged];
     }
     return _textField;
+}
+- (UIImageView *)cursorIV
+{
+    if (!_cursorIV) {
+        _cursorIV = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 2, 20)];
+        _cursorIV.backgroundColor = [UIColor blackColor];
+        _cursorIV.hidden = YES;
+        _cursorIV.layer.masksToBounds = YES;
+        _cursorIV.layer.cornerRadius = 1;
+    }
+    return _cursorIV;
 }
 
 @end
