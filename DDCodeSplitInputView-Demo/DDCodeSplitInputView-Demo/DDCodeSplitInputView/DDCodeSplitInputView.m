@@ -138,8 +138,10 @@
 - (void)cursorAnimation
 {
     CAKeyframeAnimation *ani = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
-    ani.values = @[@1, @0, @0, @1];
+    ani.values = @[@1, @0, @0, @1, @1];
+    ani.keyTimes = @[@0,@0.3,@0.6,@0.9,@1];
     ani.duration = 1;
+    ani.calculationMode = kCAAnimationLinear;
     ani.repeatCount = 999999;
     [self.cursorIV.layer addAnimation:ani forKey:@"ani"];
 }
